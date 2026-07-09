@@ -566,20 +566,39 @@ void add_input_type_embedding(const VibeVoiceConfig& cfg,
     }
 }
 
+// Repack per-frame [latent] latents (frame-major, latent-fastest) into the
+// acoustic decoder's ggml order [n_frames, vae_dim] (frame-fastest, ne[0] =
+// n_frames contiguous). Shared by the single-shot decode_latent_sequence and
+// the streaming run_decoder_chunk_streaming so both feed the decoder
+// byte-identically regardless of chunking.
+std::vector<float> pack_latents_ggml_order(const float* latents,
+                                           int n_frames, int latent) {
+    std::vector<float> packed(static_cast<size_t>(latent) * n_frames);
+    for (int t = 0; t < n_frames; ++t)
+        for (int d = 0; d < latent; ++d)
+            packed[static_cast<size_t>(d) * n_frames + t] =
+                latents[static_cast<size_t>(t) * latent + d];
+    return packed;
+}
+
+}  // namespace
+
 // Decode a SEQUENCE of N speech latents into audio samples in a single
 // decoder pass. The decoder is causal — its convolutions need to see the
 // full latent trajectory to produce coherent audio. Decoding frame-by-frame
 // independently zeros out the receptive field across frames and yields
 // "lyric"-style noise instead of intelligible speech.
 //
-// `scaled_latents` has shape [vae_dim * n_frames] in row-major (latent
-// fastest), matching what `ggml_new_tensor_3d(ctx, F32, n_frames, vae_dim, 1)`
-// expects when ne[0] = n_frames is the contiguous dim.
+// `latents` is per-frame [latent] (frame-major, latent-fastest); the decoder's
+// ggml order [n_frames, vae_dim] is produced internally by pack_latents_ggml_order
+// so callers (and the streaming path) hand off the same frame-major layout.
 std::vector<float> decode_latent_sequence(const VibeVoiceConfig&  cfg,
                                           const VibeVoiceWeights& w,
-                                          const float*            scaled_latents,
+                                          const float*            latents,
                                           int                     n_frames) {
     if (n_frames <= 0) return {};
+    std::vector<float> packed = pack_latents_ggml_order(latents, n_frames, cfg.latent);
+
     // Backend-aware compute: build the graph in a no_alloc ctx, allocate
     // leaf tensors on the active backend's buffer, upload input via
     // ggml_backend_tensor_set, and let vv::compute_graph allocate the
@@ -598,7 +617,7 @@ std::vector<float> decode_latent_sequence(const VibeVoiceConfig&  cfg,
 
     ggml_backend_buffer_t in_buf = vv::allocate_ctx_tensors(ctx);
     if (!in_buf) { ggml_free(ctx); return {}; }
-    ggml_backend_tensor_set(z, scaled_latents, 0,
+    ggml_backend_tensor_set(z, packed.data(), 0,
                             sizeof(float) * cfg.vae_dim * n_frames);
 
     if (!vv::compute_graph(gf)) {
@@ -614,7 +633,86 @@ std::vector<float> decode_latent_sequence(const VibeVoiceConfig&  cfg,
     return samples;
 }
 
-}  // namespace
+// One streaming chunk: builds the decoder graph against `cache`, runs it,
+// and pulls each conv's "next view" (its input tail) into the cache for the
+// next call. `scaled_latents` is this chunk's per-frame [latent] latents
+// (frame-major, latent-fastest); pack_latents_ggml_order applies the identical
+// transform decode_latent_sequence uses, so concatenating each chunk's audio
+// is bit-exact vs a single-shot decode of the whole sequence.
+bool run_decoder_chunk_streaming(const VibeVoiceConfig&  cfg,
+                                 const VibeVoiceWeights& w,
+                                 const float*            scaled_latents,
+                                 int                     n_frames,
+                                 StreamingCache&         cache,
+                                 bool                    is_first,
+                                 bool                    is_final,
+                                 std::vector<float>*     audio_out) {
+    if (!audio_out || n_frames <= 0) return false;
+    cache.is_first_chunk = is_first;
+    cache.is_final_chunk = is_final;
+
+    std::vector<float> packed = pack_latents_ggml_order(scaled_latents, n_frames, cfg.latent);
+
+    struct ggml_init_params p {};
+    p.mem_size = ggml_tensor_overhead() * 32768
+               + ggml_graph_overhead_custom(32768, false);
+    p.no_alloc = true;
+    struct ggml_context* ctx = ggml_init(p);
+    if (!ctx) return false;
+
+    struct ggml_tensor* z = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, n_frames, cfg.vae_dim, 1);
+    ggml_set_name(z, "decode_chunk_z");
+    struct ggml_tensor* y = decoder_forward_streaming(ctx, z, w.at_dec, cfg.acoustic, cache);
+    struct ggml_cgraph* gf = ggml_new_graph_custom(ctx, 32768, false);
+    ggml_build_forward_expand(gf, y);
+    // Make the per-conv "last context" views part of the forward graph so
+    // ggml computes them and their memory lives until we read it back.
+    for (auto& kv : cache) {
+        if (kv.second.next_view) ggml_build_forward_expand(gf, kv.second.next_view);
+    }
+
+    ggml_backend_buffer_t in_buf = vv::allocate_ctx_tensors(ctx);
+    if (!in_buf) { ggml_free(ctx); return false; }
+    ggml_backend_tensor_set(z, packed.data(), 0,
+                            sizeof(float) * cfg.vae_dim * n_frames);
+    // Populate per-conv cache prefixes — zeros on the first chunk, the
+    // previous chunk's tail thereafter. .data was null until the alloc above,
+    // so we couldn't memcpy them inside the streaming convs.
+    for (auto& kv : cache) {
+        StreamingCacheEntry& e = kv.second;
+        if (!e.prefix || e.T == 0) continue;
+        const size_t need = static_cast<size_t>(e.T) * e.C;
+        if (cache.is_first_chunk || e.data.size() != need) {
+            std::vector<float> zeros(need, 0.0f);
+            ggml_backend_tensor_set(e.prefix, zeros.data(), 0, sizeof(float) * need);
+        } else {
+            ggml_backend_tensor_set(e.prefix, e.data.data(), 0, sizeof(float) * need);
+        }
+    }
+
+    if (!vv::compute_graph(gf)) {
+        ggml_backend_buffer_free(in_buf);
+        ggml_free(ctx); return false;
+    }
+    const int T_full = static_cast<int>(y->ne[0]);
+    audio_out->assign(T_full, 0.0f);
+    ggml_backend_tensor_get(y, audio_out->data(), 0, sizeof(float) * T_full);
+    // Pull each conv's last-context view back into the cache entry's flat CPU
+    // buffer for the next chunk to prepend.
+    for (auto& kv : cache) {
+        StreamingCacheEntry& e = kv.second;
+        if (!e.next_view || e.T == 0) continue;
+        const size_t n = static_cast<size_t>(e.T) * e.C;
+        e.data.assign(n, 0.0f);
+        ggml_backend_tensor_get(e.next_view, e.data.data(), 0, sizeof(float) * n);
+        e.next_view = nullptr;
+        e.prefix    = nullptr;
+    }
+    cache.is_first_chunk = false;
+    ggml_backend_buffer_free(in_buf);
+    ggml_free(ctx);
+    return true;
+}
 
 // Forward declaration — implementation later in this file.
 namespace {
@@ -908,28 +1006,9 @@ int vibevoice_tts_generate(VibeVoiceModel*           model,
         for (size_t i = 0; i < all_latents.size(); ++i) {
             scaled[i] = all_latents[i] / cfg.speech_scaling - cfg.speech_bias;
         }
-        // The decoder expects the latent dim as the contiguous (innermost)
-        // axis in ggml. Our `all_latents` is stored as N consecutive
-        // [latent]-sized chunks in time order, which is exactly that layout
-        // when reshaped to [n_frames, vae_dim] (numpy) -> ggml [vae_dim,
-        // n_frames] -> oh wait we need to transpose. Re-pack as
-        // [latent fastest, frames slower] (ggml ne[0]=n_frames, ne[1]=vae_dim
-        // is wrong — should be ne[0]=vae_dim).
-        //
-        // Actually our existing decoder fixture / forward expects ne[0] =
-        // T_compressed (frames). Let's check by tracing:
-        //   encoder_forward output has ne = [T_compr, vae_dim, B]
-        //   decoder_forward input  has ne = [T_compr, vae_dim, B]   (same)
-        // So ne[0] is frames, ne[1] is vae_dim. Memory: frame fastest.
-        // We append [latent] vectors per frame so memory is "latent fastest"
-        // = mismatched. Need to transpose.
-        std::vector<float> packed(scaled.size());
-        for (int t = 0; t < n_frames; ++t) {
-            for (int d = 0; d < cfg.latent; ++d) {
-                packed[d * n_frames + t] = scaled[t * cfg.latent + d];
-            }
-        }
-        auto audio = decode_latent_sequence(cfg, w, packed.data(), n_frames);
+        // `scaled` is per-frame [latent] (frame-major); decode_latent_sequence
+        // applies the ggml-order packing internally.
+        auto audio = decode_latent_sequence(cfg, w, scaled.data(), n_frames);
         *samples = std::move(audio);
     }
 
@@ -1361,14 +1440,9 @@ int tts_15b_generate(VibeVoiceModel*            model,
         for (size_t i = 0; i < all_latents.size(); ++i) {
             scaled[i] = all_latents[i] / cfg.speech_scaling - cfg.speech_bias;
         }
-        // Repack from per-frame [latent] to ggml-order [vae_dim, n_frames].
-        std::vector<float> packed(scaled.size());
-        for (int t = 0; t < n_frames; ++t) {
-            for (int d = 0; d < cfg.latent; ++d) {
-                packed[d * n_frames + t] = scaled[t * cfg.latent + d];
-            }
-        }
-        *samples = decode_latent_sequence(cfg, w, packed.data(), n_frames);
+        // `scaled` is per-frame [latent] (frame-major); decode_latent_sequence
+        // applies the ggml-order packing internally.
+        *samples = decode_latent_sequence(cfg, w, scaled.data(), n_frames);
     }
     if (p.verbose) std::fprintf(stderr,
         "[tts_15b] %d frames -> %zu samples\n", n_frames, samples->size());

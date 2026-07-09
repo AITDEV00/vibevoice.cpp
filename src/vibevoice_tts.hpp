@@ -176,6 +176,29 @@ int vibevoice_tts_generate(VibeVoiceModel*           model,
                            const VibeVoiceTTSParams& p,
                            std::vector<float>*       samples);
 
+// Decode a full latent sequence to 24 kHz mono float32 audio in one pass.
+// `latents` is per-frame [latent] (frame-major, latent-fastest); the decoder's
+// ggml-order packing ([n_frames, vae_dim]) is applied internally. Returns the
+// waveform, or empty on failure.
+std::vector<float> decode_latent_sequence(const VibeVoiceConfig&  cfg,
+                                          const VibeVoiceWeights& w,
+                                          const float*            latents,
+                                          int                     n_frames);
+
+// Streaming decode of ONE chunk of `n_frames` latent frames (same frame-major
+// layout as decode_latent_sequence). Threads `cache` through every decoder
+// conv so concatenating each chunk's audio is bit-exact vs a single-shot
+// decode_latent_sequence. Set is_first on the first chunk, is_final on the
+// last. Fills *audio_out with the chunk's samples. Returns false on failure.
+bool run_decoder_chunk_streaming(const VibeVoiceConfig&  cfg,
+                                 const VibeVoiceWeights& w,
+                                 const float*            scaled_latents,
+                                 int                     n_frames,
+                                 StreamingCache&         cache,
+                                 bool                    is_first,
+                                 bool                    is_final,
+                                 std::vector<float>*     audio_out);
+
 }  // namespace vv
 
 #endif  // VIBEVOICE_TTS_HPP
