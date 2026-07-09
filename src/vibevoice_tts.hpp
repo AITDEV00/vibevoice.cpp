@@ -33,6 +33,7 @@
 #include "qwen2.hpp"
 #include "tokenizer.hpp"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -175,6 +176,22 @@ int vibevoice_tts_generate(VibeVoiceModel*           model,
                            const std::string&        text,
                            const VibeVoiceTTSParams& p,
                            std::vector<float>*       samples);
+
+// Callback delivering each decoded audio chunk (24 kHz mono float32) as soon
+// as it is produced. Return false to abort generation early and cleanly.
+using vv_pcm_chunk_cb = std::function<bool(const float* samples, int n_samples)>;
+
+// Streaming counterpart of vibevoice_tts_generate for the realtime-0.5b model.
+// The LM window loop is interleaved with acoustic decode: each completed speech
+// window's latents are decoded incrementally (threaded through a shared decoder
+// StreamingCache, so concatenating every chunk is bit-exact vs a single-shot
+// decode of the whole sequence) and handed to `on_chunk`. If `on_chunk` returns
+// false the run stops early and returns 0. Realtime-0.5b only (1.5b is not
+// supported here — call vibevoice_tts_generate for that). Returns 0 on success.
+int vibevoice_tts_generate_streaming(VibeVoiceModel*           model,
+                                     const std::string&        text,
+                                     const VibeVoiceTTSParams& p,
+                                     const vv_pcm_chunk_cb&    on_chunk);
 
 // Decode a full latent sequence to 24 kHz mono float32 audio in one pass.
 // `latents` is per-frame [latent] (frame-major, latent-fastest); the decoder's

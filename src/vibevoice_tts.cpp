@@ -740,6 +740,28 @@ int vibevoice_tts_generate(VibeVoiceModel*           model,
         return tts_15b_generate(model, text, p, samples);
     }
 
+    // realtime-0.5b: a thin wrapper over the streaming path. One loop, two
+    // entry points — batch generate just accumulates every emitted chunk.
+    samples->clear();
+    return vibevoice_tts_generate_streaming(
+        model, text, p,
+        [samples](const float* s, int n) {
+            samples->insert(samples->end(), s, s + n);
+            return true;
+        });
+}
+
+int vibevoice_tts_generate_streaming(VibeVoiceModel*           model,
+                                     const std::string&        text,
+                                     const VibeVoiceTTSParams& p,
+                                     const vv_pcm_chunk_cb&    on_chunk) {
+    if (!model || !on_chunk) return -1;
+    if (model->variant == "1.5b") {
+        VV_LOG_ERROR("vibevoice_tts_generate_streaming: streaming is only "
+                     "supported for realtime-0.5b models");
+        return -1;
+    }
+
     const auto& cfg = model->cfg;
     const auto& w   = model->w;
 
@@ -883,9 +905,15 @@ int vibevoice_tts_generate(VibeVoiceModel*           model,
     std::mt19937 rng(p.seed ? p.seed : std::random_device{}());
     std::normal_distribution<float> norm(0.0f, 1.0f);
 
-    samples->clear();
     std::vector<float> all_latents;
     all_latents.reserve(static_cast<size_t>(p.max_speech_frames) * cfg.latent);
+
+    // Shared decoder streaming state: each completed speech window is decoded
+    // through this cache so concatenating the emitted chunks is bit-exact vs a
+    // single-shot decode_latent_sequence over the full latent trajectory.
+    StreamingCache dec_cache;
+    int  decoded_frames  = 0;   // latent frames already decoded + emitted
+    int  emitted_windows = 0;   // chunks handed to on_chunk so far
 
     int  text_pos = 0;
     bool finished = false;
@@ -991,6 +1019,46 @@ int vibevoice_tts_generate(VibeVoiceModel*           model,
             }
         }
 
+        // ---- decode this speech window and emit it incrementally ----
+        // The LM loop above buffered `new_frames` fresh latents into
+        // all_latents. Decode exactly those through the shared cache so the
+        // caller hears audio as it's generated. is_final is set on the window
+        // that ends the run (EOS or frame cap) — the outer while exits right
+        // after, so this is the last chunk that reaches the decoder and gets
+        // the closing right-pad, matching the single-shot decode.
+        const int new_frames = total_frames - decoded_frames;
+        if (new_frames > 0) {
+            const size_t base = static_cast<size_t>(decoded_frames) * cfg.latent;
+            // scaled = latent / speech_scaling - speech_bias  (mlx-audio order);
+            // identical scaling to the former single-shot path, applied per
+            // window. Frame-major [new_frames * latent]; run_decoder_chunk_streaming
+            // applies the ggml-order packing internally.
+            std::vector<float> scaled(static_cast<size_t>(new_frames) * cfg.latent);
+            for (size_t i = 0; i < scaled.size(); ++i) {
+                scaled[i] = all_latents[base + i] / cfg.speech_scaling - cfg.speech_bias;
+            }
+            const bool is_first = (emitted_windows == 0);
+            const bool is_final = finished || (total_frames >= p.max_speech_frames);
+            std::vector<float> win_audio;
+            if (!run_decoder_chunk_streaming(cfg, w, scaled.data(), new_frames,
+                                             dec_cache, is_first, is_final,
+                                             &win_audio)) {
+                VV_LOG_ERROR("run_decoder_chunk_streaming failed at frame %d",
+                             total_frames);
+                return -11;
+            }
+            ++emitted_windows;
+            decoded_frames = total_frames;
+            if (p.verbose) std::fprintf(stderr,
+                "[tts] window %d: decoded %d frames -> %zu samples (final=%d)\n",
+                emitted_windows, new_frames, win_audio.size(), is_final ? 1 : 0);
+            if (!on_chunk(win_audio.data(), static_cast<int>(win_audio.size()))) {
+                if (p.verbose) std::fprintf(stderr,
+                    "[tts] on_chunk requested abort after %d frames\n", total_frames);
+                return 0;
+            }
+        }
+
         // If we've consumed all text AND not finished, the outer loop will
         // continue with empty-text iterations (just speech) until EOS or cap.
         if (text_pos >= n_text && !finished) {
@@ -998,22 +1066,9 @@ int vibevoice_tts_generate(VibeVoiceModel*           model,
         }
     }
 
-    // ---- 6. decode the full latent sequence in one pass ----
-    const int n_frames = static_cast<int>(all_latents.size() / cfg.latent);
-    if (n_frames > 0) {
-        // scaled = latent / speech_scaling - speech_bias  (mlx-audio order)
-        std::vector<float> scaled(all_latents.size());
-        for (size_t i = 0; i < all_latents.size(); ++i) {
-            scaled[i] = all_latents[i] / cfg.speech_scaling - cfg.speech_bias;
-        }
-        // `scaled` is per-frame [latent] (frame-major); decode_latent_sequence
-        // applies the ggml-order packing internally.
-        auto audio = decode_latent_sequence(cfg, w, scaled.data(), n_frames);
-        *samples = std::move(audio);
-    }
-
-    if (p.verbose) std::fprintf(stderr, "[tts] decoded %zu samples from %d latents\n",
-                                samples->size(), n_frames);
+    if (p.verbose) std::fprintf(stderr,
+        "[tts] streaming done: %d frames in %d windows\n",
+        total_frames, emitted_windows);
     return 0;
 }
 
