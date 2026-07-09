@@ -175,4 +175,60 @@ struct ggml_tensor* sconv_transpose1d_causal(struct ggml_context* ctx,
     return maybe_add_bias_t(ctx, y, bias);
 }
 
+struct ggml_tensor* sconv_transpose1d_causal_streaming(struct ggml_context* ctx,
+                                                       struct ggml_tensor*  x,
+                                                       struct ggml_tensor*  kernel,
+                                                       struct ggml_tensor*  bias,
+                                                       int stride,
+                                                       StreamingCache&    cache,
+                                                       const std::string& layer_id) {
+    const int K    = static_cast<int>(kernel->ne[0]);
+    const int C_in = static_cast<int>(x->ne[1]);
+    const int B    = static_cast<int>(x->ne[2]);
+    const int T_in = static_cast<int>(x->ne[0]);
+    const int L    = (K - 1 + stride - 1) / stride;  // ceil((K-1)/stride) input frames
+
+    auto& entry = cache[layer_id];
+    entry.T = L;
+    entry.C = C_in;
+
+    struct ggml_tensor* prefix = nullptr;
+    if (L > 0) {
+        prefix = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, L, C_in, B);
+        ggml_set_name(prefix, ("cache_prefix_" + layer_id).c_str());
+    }
+    entry.prefix = prefix;
+
+    struct ggml_tensor* xp = x;
+    if (prefix) xp = ggml_concat(ctx, prefix, x, /*dim=*/0);
+
+    // conv_transpose_1d requires F32 kernels (matches sconv_transpose1d_causal).
+    struct ggml_tensor* k = (kernel->type == GGML_TYPE_F32)
+                              ? kernel : ggml_cast(ctx, kernel, GGML_TYPE_F32);
+    struct ggml_tensor* y_full = ggml_conv_transpose_1d(ctx, k, xp, stride, /*p0=*/0, /*d0=*/1);
+
+    // Emit exactly the new frames' outputs: [L*stride, L*stride + T_in*stride).
+    const int64_t emit_off = static_cast<int64_t>(L) * stride;
+    const int64_t emit_len = static_cast<int64_t>(T_in) * stride;
+    struct ggml_tensor* y = ggml_view_3d(ctx, y_full,
+        /*ne0=*/emit_len, /*ne1=*/y_full->ne[1], /*ne2=*/y_full->ne[2],
+        /*nb1=*/y_full->nb[1], /*nb2=*/y_full->nb[2],
+        /*offset=*/static_cast<size_t>(emit_off) * y_full->nb[0]);
+    y = ggml_cont(ctx, y);
+
+    // Cache the last L input frames for the next chunk's left context.
+    if (L > 0) {
+        struct ggml_tensor* base = prefix ? ggml_concat(ctx, prefix, x, /*dim=*/0) : x;
+        const int T_avail = T_in + L;
+        const int start   = std::max(0, T_avail - L);
+        struct ggml_tensor* view = ggml_view_3d(ctx, base,
+            /*ne0=*/L, /*ne1=*/C_in, /*ne2=*/B,
+            /*nb1=*/base->nb[1], /*nb2=*/base->nb[2],
+            /*offset=*/static_cast<size_t>(start) * base->nb[0]);
+        entry.next_view = ggml_cont(ctx, view);
+    }
+
+    return maybe_add_bias_t(ctx, y, bias);
+}
+
 }  // namespace vv

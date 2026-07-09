@@ -120,6 +120,16 @@ struct ggml_tensor* encoder_forward_streaming(struct ggml_context*    ctx,
                                               const AcousticConfig&   cfg,
                                               StreamingCache&         cache);
 
+// Streaming decoder. Same forward math as decoder_forward, but every causal
+// conv (stem, per-stage residual blocks, transpose upsamplers, head) reads /
+// writes its left context through `cache` under a unique layer_id so chunked
+// decoding is bit-exact vs a single-shot pass. z: [n_frames, vae_dim, B].
+struct ggml_tensor* decoder_forward_streaming(struct ggml_context*    ctx,
+                                              struct ggml_tensor*     z,
+                                              const DecoderWeights&   w,
+                                              const AcousticConfig&   cfg,
+                                              StreamingCache&         cache);
+
 }  // namespace vv
 
 #endif  // VIBEVOICE_ACOUSTIC_TOKENIZER_HPP

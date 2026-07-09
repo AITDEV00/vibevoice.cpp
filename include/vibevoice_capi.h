@@ -70,6 +70,31 @@ int vv_capi_tts(const char*        text,
                 int                max_speech_frames,
                 uint32_t           seed);
 
+// Streaming counterpart of vv_capi_tts for the realtime-0.5B model. Each
+// decoded audio window is converted to 24 kHz mono signed-16-bit PCM and handed
+// to `on_pcm` as soon as it is produced. Concatenating every callback's samples
+// yields exactly the PCM that vv_capi_tts writes to a WAV for the same
+// text/voice/seed (same generate path, same float→int16 conversion).
+//
+//   text              - sentence or speaker-tagged dialog (see vv_capi_tts).
+//   voice_path        - voice gguf; may be NULL if supplied to vv_capi_load.
+//   n_diffusion_steps - 0 → 20. cfg_scale 0 → 1.3. max_speech_frames 0 → 200.
+//   seed              - 0 → random.
+//   on_pcm            - called per window; return non-zero to abort cleanly.
+//   user              - opaque pointer forwarded to on_pcm.
+//
+// Realtime-0.5B only: returns -20 if a 1.5B model is loaded (unsupported).
+// Returns 0 on success, non-zero error code otherwise.
+typedef int (*vv_pcm_cb)(const int16_t* samples, int n_samples, void* user);
+int vv_capi_tts_stream(const char* text,
+                       const char* voice_path,
+                       int         n_diffusion_steps,
+                       float       cfg_scale,
+                       int         max_speech_frames,
+                       uint32_t    seed,
+                       vv_pcm_cb   on_pcm,
+                       void*       user);
+
 // Transcribe `src_wav_path` into a JSON string written into the caller-
 // owned `out_json` buffer of size `out_capacity`. The JSON is the same
 // shape the model produces, e.g.
