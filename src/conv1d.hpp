@@ -110,6 +110,18 @@ struct ggml_tensor* sconv_transpose1d_causal(struct ggml_context* ctx,
                                              struct ggml_tensor*  bias,   // [C_out] or null
                                              int stride);
 
+// Streaming variant of sconv_transpose1d_causal. Keeps L = ceil((K-1)/stride)
+// input frames of left context in `cache[layer_id]`; emits exactly the new
+// frames' output samples [L*stride : L*stride + T_in*stride). Bit-exact vs a
+// single-shot pass. Ignores is_final_chunk (all-causal, no right-pad needed).
+struct ggml_tensor* sconv_transpose1d_causal_streaming(struct ggml_context* ctx,
+                                                       struct ggml_tensor*  x,
+                                                       struct ggml_tensor*  kernel,
+                                                       struct ggml_tensor*  bias,
+                                                       int stride,
+                                                       StreamingCache&    cache,
+                                                       const std::string& layer_id);
+
 }  // namespace vv
 
 #endif  // VIBEVOICE_CONV1D_HPP
