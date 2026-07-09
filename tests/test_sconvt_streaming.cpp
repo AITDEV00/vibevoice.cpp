@@ -1,19 +1,24 @@
 // Streaming SConvTranspose1d parity: chunked (with StreamingCache) must equal
-// single-shot, bit-exact modulo fp noise. Uses in-repo fixtures (no model).
+// single-shot, bit-exact modulo fp noise.
+//
+// This test is fully SELF-CONTAINED: it generates random kernel + bias + input
+// tensors in-memory (no fixture/model load), so it always runs in CI. The
+// invariant is streaming-vs-single-shot through the SAME kernel via the SAME
+// functions (vv::sconv_transpose1d_causal vs ..._streaming) — any consistent
+// random kernel exercises it; there is no PyTorch/reference comparison.
 #include "conv1d.hpp"
 #include "backend.hpp"
 #include "ggml-cpu.h"
 #include "ggml.h"
-#include "model_loader.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <random>
 #include <string>
 #include <vector>
 
 namespace {
-bool file_ok(const std::string& p) { FILE* f = std::fopen(p.c_str(), "rb"); if (!f) return false; std::fclose(f); return true; }
 
 // Single-shot: run vv::sconv_transpose1d_causal on the whole input.
 bool run_single(struct ggml_tensor* w, struct ggml_tensor* b,
@@ -68,25 +73,59 @@ bool run_stream_chunk(struct ggml_tensor* w, struct ggml_tensor* b,
     ggml_backend_buffer_free(buf); ggml_free(ctx); return true;
 }
 
-int run_case(const std::string& path, double tol) {
-    if (!file_ok(path)) { std::fprintf(stderr, "skip: missing %s\n", path.c_str()); return 77; }
-    vv::ModelLoader loader; if (!loader.load(path)) return 1;
-    const int stride = loader.get_i32("convt.stride");
-    const int T = loader.get_i32("convt.T");
-    struct ggml_tensor* in_t = loader.tensor("test.input");
-    struct ggml_tensor* w = loader.tensor("weight.kernel");
-    struct ggml_tensor* b = loader.tensor("weight.bias");
-    if (!in_t || !w || !b) return 2;
-    const int C_in = (int)in_t->ne[1];
-    std::vector<float> in((size_t)T*C_in); std::memcpy(in.data(), in_t->data, sizeof(float)*in.size());
+// Holds the random kernel + bias tensors in an allocated context so they persist
+// across the separate single-shot / streaming compute contexts (mirrors how the
+// loader previously handed out long-lived tensors).
+struct ConvWeights {
+    struct ggml_context*  ctx = nullptr;
+    ggml_backend_buffer_t buf = nullptr;
+    struct ggml_tensor*   w   = nullptr;   // kernel: ne=[K, C_out, C_in]
+    struct ggml_tensor*   b   = nullptr;   // bias:   ne=[C_out]
+    ~ConvWeights() { if (buf) ggml_backend_buffer_free(buf); if (ctx) ggml_free(ctx); }
+};
+
+// ggml_conv_transpose_1d(ctx, a=kernel, b=data): kernel ne=[K, C_out, C_in, 1],
+// input ne=[T, C_in, 1], output ne=[T_out, C_out, 1] (see ggml.c). Fill with a
+// deterministic normal distribution; vary the seed per case index.
+//
+// The weights are allocated on the active backend (not a plain no_alloc=false
+// CPU context) so tensor->buffer is non-NULL: maybe_add_bias_t reshapes the
+// bias into a view, and ggml_backend_alloc_ctx_tensors asserts that a view's
+// view_src->buffer is set.
+bool make_weights(ConvWeights* out, int K, int C_out, int C_in, unsigned seed) {
+    struct ggml_init_params p{}; p.mem_size = ggml_tensor_overhead()*8; p.no_alloc = true;
+    out->ctx = ggml_init(p);
+    out->w = ggml_new_tensor_3d(out->ctx, GGML_TYPE_F32, K, C_out, C_in);
+    out->b = ggml_new_tensor_1d(out->ctx, GGML_TYPE_F32, C_out);
+    out->buf = vv::allocate_ctx_tensors(out->ctx);
+    if (!out->buf) return false;
+    std::mt19937 rng(seed);
+    std::normal_distribution<float> nd(0.f, 0.5f);
+    std::vector<float> wd(ggml_nelements(out->w)); for (auto& v : wd) v = nd(rng);
+    std::vector<float> bd(ggml_nelements(out->b)); for (auto& v : bd) v = nd(rng);
+    ggml_backend_tensor_set(out->w, wd.data(), 0, sizeof(float)*wd.size());
+    ggml_backend_tensor_set(out->b, bd.data(), 0, sizeof(float)*bd.size());
+    return true;
+}
+
+int run_case(const std::string& name, int K, int stride, int C_in, int C_out,
+             int T, unsigned seed, double tol) {
+    ConvWeights cw;
+    if (!make_weights(&cw, K, C_out, C_in, seed)) { std::fprintf(stderr,"FAIL %s: weight alloc\n",name.c_str()); return 2; }
+
+    // Input [T, C_in] contiguous (T fastest per channel), random.
+    std::vector<float> in((size_t)T*C_in);
+    { std::mt19937 rng(seed ^ 0x9e3779b9u); std::normal_distribution<float> nd(0.f,1.f);
+      for (auto& v : in) v = nd(rng); }
 
     std::vector<float> ref; int refT=0, refC=0;
-    if (!run_single(w,b,in,T,C_in,stride,&ref,&refT,&refC)) return 3;
+    if (!run_single(cw.w,cw.b,in,T,C_in,stride,&ref,&refT,&refC)) { std::fprintf(stderr,"FAIL %s: single-shot compute\n",name.c_str()); return 3; }
+    if (refC != C_out) { std::fprintf(stderr,"FAIL %s: C_out mismatch got=%d want=%d\n",name.c_str(),refC,C_out); return 3; }
 
     // Chunk the input into 3 pieces along the time (frame) axis. Each chunk
-    // emits a [emit_len, C_out] block; we splice those blocks back into a
-    // single [T_out, C_out] buffer (matching the single-shot ggml layout, ne0
-    // = T_out fastest) at the running time offset so the flat compare below is
+    // emits a [emit_len, C_out] block; splice those blocks back into a single
+    // [T_out, C_out] buffer (matching the single-shot ggml layout, ne0 = T_out
+    // fastest) at the running time offset so the compare below is
     // apples-to-apples for C_out > 1.
     std::vector<float> got((size_t)refT*refC, 0.f);
     vv::StreamingCache cache; cache.is_first_chunk=true;
@@ -96,12 +135,12 @@ int run_case(const std::string& path, double tol) {
         const int t0=done, t1=(c==nchunks-1)? T : std::min(T,(int)((double)(c+1)*T/nchunks));
         if (t1<=t0) continue;
         cache.is_final_chunk=(t1==T);
-        // seg is [seg_T, C_in] contiguous: input is [T, C_in] row-major (T fastest).
+        // seg is [seg_T, C_in] contiguous: input is [T, C_in] (T fastest).
         std::vector<float> seg((size_t)(t1-t0)*C_in);
         for (int ch=0; ch<C_in; ++ch)
             std::memcpy(seg.data()+(size_t)ch*(t1-t0), in.data()+(size_t)ch*T+t0, sizeof(float)*(t1-t0));
         std::vector<float> chunk_out; int sT=0,sC=0;
-        if (!run_stream_chunk(w,b,seg,t1-t0,C_in,stride,cache,&chunk_out,&sT,&sC)) return 4;
+        if (!run_stream_chunk(cw.w,cw.b,seg,t1-t0,C_in,stride,cache,&chunk_out,&sT,&sC)) { std::fprintf(stderr,"FAIL %s: stream chunk compute\n",name.c_str()); return 4; }
         // Splice [sT, sC] block into got at time offset gotT, per channel.
         if (gotT + sT <= refT && sC == refC) {
             for (int ch=0; ch<sC; ++ch)
@@ -109,21 +148,22 @@ int run_case(const std::string& path, double tol) {
         }
         gotC=sC; gotT+=sT; done=t1;
     }
-    if (gotT != refT) { std::fprintf(stderr,"FAIL %s: T mismatch stream=%d single=%d\n",path.c_str(),gotT,refT); return 5; }
-    if (gotC != refC) { std::fprintf(stderr,"FAIL %s: C mismatch stream=%d single=%d\n",path.c_str(),gotC,refC); return 5; }
+    if (gotT != refT) { std::fprintf(stderr,"FAIL %s: T mismatch stream=%d single=%d\n",name.c_str(),gotT,refT); return 5; }
+    if (gotC != refC) { std::fprintf(stderr,"FAIL %s: C mismatch stream=%d single=%d\n",name.c_str(),gotC,refC); return 5; }
     double maxabs=0; for (size_t i=0;i<ref.size();++i) maxabs=std::max(maxabs,(double)std::fabs(ref[i]-got[i]));
-    std::printf("%-24s max_abs=%.3e T=%d s=%d C=%d (transpose streaming)\n", path.c_str(), maxabs, T, stride, C_in);
+    std::printf("%-24s max_abs=%.3e K=%d s=%d C_in=%d C_out=%d T=%d (transpose streaming)\n",
+                name.c_str(), maxabs, K, stride, C_in, C_out, T);
     return maxabs < tol ? 0 : 6;
 }
+
 }  // namespace
 
 int main() {
-#ifndef VV_FIXTURES_DIR
-#  define VV_FIXTURES_DIR "tests/fixtures"
-#endif
-    const std::string fix = VV_FIXTURES_DIR;
+    const double tol = 1e-4;
     int rc=0, s;
-    s=run_case(fix+"/sconvt1d_basic.gguf", 2e-3); if (s!=0 && s!=77) rc=rc?rc:s;
-    s=run_case(fix+"/sconvt1d_long.gguf",  2e-3); if (s!=0 && s!=77) rc=rc?rc:s;
+    // Real-decoder ratios, kernel convention K = 2*stride. C_in=8 -> C_out=4.
+    s=run_case("convt_k4_s2",  /*K=*/4,  /*stride=*/2, /*C_in=*/8, /*C_out=*/4, /*T=*/37, /*seed=*/1, tol); if (s) rc=rc?rc:s;
+    s=run_case("convt_k10_s5", /*K=*/10, /*stride=*/5, /*C_in=*/8, /*C_out=*/4, /*T=*/41, /*seed=*/2, tol); if (s) rc=rc?rc:s;
+    s=run_case("convt_k16_s8", /*K=*/16, /*stride=*/8, /*C_in=*/8, /*C_out=*/4, /*T=*/53, /*seed=*/3, tol); if (s) rc=rc?rc:s;
     return rc;
 }
