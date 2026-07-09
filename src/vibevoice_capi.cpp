@@ -11,11 +11,14 @@
 #include "vibevoice_asr.hpp"
 #include "vibevoice_tts.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -182,6 +185,66 @@ int vv_capi_tts(const char*        text,
     audio_out.sample_rate = 24000;
     audio_out.channels    = 1;
     return vv::save_wav_pcm16(dst_wav_path, audio_out);
+}
+
+int vv_capi_tts_stream(const char* text,
+                       const char* voice_path,
+                       int         n_diffusion_steps,
+                       float       cfg_scale,
+                       int         max_speech_frames,
+                       uint32_t    seed,
+                       vv_pcm_cb   on_pcm,
+                       void*       user) {
+    auto& g = engine();
+    std::lock_guard<std::mutex> lk(g.mu);
+    if (!g.tts)          return -3;
+    if (!text || !on_pcm) return -2;
+
+    // Realtime-0.5B only: the streaming decoder is not wired for the 1.5B
+    // variant (see vibevoice_tts_generate_streaming). Report a distinct code.
+    if (g.tts->variant == "1.5b") {
+        VV_LOG_ERROR("vv_capi_tts_stream: streaming unsupported for 1.5b model");
+        return -20;
+    }
+
+    vv::VibeVoiceTTSParams p;
+    p.cfg_scale          = cfg_scale > 0.0f ? cfg_scale : 1.3f;
+    p.n_diffusion_steps  = n_diffusion_steps > 0 ? n_diffusion_steps : 20;
+    p.max_speech_frames  = max_speech_frames > 0 ? max_speech_frames : 200;
+    p.seed               = seed;
+    p.verbose            = false;
+
+    if (voice_path && voice_path[0]) {
+        if (!ensure_voice_loaded(g, voice_path)) return -3;
+    }
+    if (!g.voice) {
+        VV_LOG_ERROR("vv_capi_tts_stream: no voice loaded — pass voice_path "
+                     "here or to vv_capi_load");
+        return -2;
+    }
+    p.voice = g.voice.get();
+
+    // Reused int16 buffer. Convert each float window with the EXACT same
+    // clamp + round as save_wav_pcm16 (audio_io.cpp) so the concatenated
+    // callback stream is byte-identical to the WAV vv_capi_tts writes.
+    std::vector<int16_t> buf;
+    auto on_chunk = [&](const float* s, int n) -> bool {
+        buf.resize(static_cast<size_t>(n));
+        for (int i = 0; i < n; ++i) {
+            float x = std::max(-1.0f, std::min(1.0f, s[i]));
+            buf[static_cast<size_t>(i)] =
+                static_cast<int16_t>(std::lround(x * 32767.0f));
+        }
+        // Non-zero from the caller means abort → stop generation cleanly.
+        return on_pcm(buf.data(), n, user) == 0;
+    };
+
+    int rc = vv::vibevoice_tts_generate_streaming(g.tts.get(), text, p, on_chunk);
+    if (rc != 0) {
+        VV_LOG_ERROR("vv_capi_tts_stream: generate rc=%d", rc);
+        return rc;
+    }
+    return 0;
 }
 
 int vv_capi_asr(const char* src_wav_path,
