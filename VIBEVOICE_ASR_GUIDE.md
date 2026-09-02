@@ -8,8 +8,8 @@
 
 ## Gateway endpoint
 
-| Capability | Gateway URL |
-|---|---|
+| Capability                 | Gateway URL                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
 | ASR (chat-style, audio-in) | `https://litellm.adeoaiengine.ecouncil.ae/v1/chat/completions` |
 
 Authentication is the standard LiteLLM gateway key passed as a Bearer token. The VibeVoice pod itself does not require auth, but the gateway always requires it:
@@ -26,14 +26,14 @@ The gateway maps the user-facing model name to the internal pod model. The disco
 
 ## Model overview
 
-| Property | Value |
-|---|---|
-| Model ID | `microsoft/VibeVoice-ASR` |
+| Property         | Value                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| Model ID         | `microsoft/VibeVoice-ASR`                                                                                |
 | Underlying model | `hosted_vllm/microsoft/VibeVoice-ASR` (upstream: `VibeVoice-ASR-awq-int4`, served via vLLM `0.27.1`) |
-| Type | Audio-to-text (ASR) with speaker diarization |
-| Mode | `audio_transcription` |
-| Input | Base64 WAV audio as an `input_audio` content part |
-| Output | JSON array of segments `{Start, End, Speaker, Content}` inside `message.content` |
+| Type             | Audio-to-text (ASR) with speaker diarization                                                               |
+| Mode             | `audio_transcription`                                                                                    |
+| Input            | Base64 WAV audio as an`input_audio` content part                                                         |
+| Output           | JSON array of segments`{Start, End, Speaker, Content}` inside `message.content`                        |
 
 Confirm it is registered on the gateway:
 
@@ -56,16 +56,16 @@ POST /v1/chat/completions
 
 A standard OpenAI chat-completions request. The system prompt tells the model to emit JSON; the user message carries a text instruction plus the audio itself:
 
-| Field | Required | Notes |
-|---|---|---|
-| `model` | yes | User-facing name `microsoft/VibeVoice-ASR` |
-| `messages[0]` (system) | yes | Instructs the model to transcribe audio to JSON |
-| `messages[1].content[0]` (text) | yes | Prompt that names the required keys |
-| `messages[1].content[1]` (input_audio) | yes | The audio: `{"type":"input_audio","input_audio":{"data":"<base64>","format":"wav"}}` |
-| `max_tokens` | no | Leave generous headroom (e.g. 300+) so the JSON array is not truncated |
-| `temperature` | no | **`0.0` (recommended)** — greedy decoding, the API equivalent of HF `do_sample=False`. Deterministic: identical audio always yields byte-identical output |
-| `repetition_penalty` | no | **`1.05` (recommended)** — mild penalty that suppresses the model's known post-audio repetition loop; passes through the gateway to vLLM |
-| `do_sample` | no | HF-style `do_sample: false` is accepted (and ignored) by vLLM; use `temperature: 0.0` instead — that is the real greedy switch |
+| Field                                    | Required | Notes                                                                                                                                                                |
+| ---------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                                | yes      | User-facing name`microsoft/VibeVoice-ASR`                                                                                                                          |
+| `messages[0]` (system)                 | yes      | Instructs the model to transcribe audio to JSON                                                                                                                      |
+| `messages[1].content[0]` (text)        | yes      | Prompt that names the required keys                                                                                                                                  |
+| `messages[1].content[1]` (input_audio) | yes      | The audio:`{"type":"input_audio","input_audio":{"data":"<base64>","format":"wav"}}`                                                                                |
+| `max_tokens`                           | no       | Leave generous headroom (e.g. 300+) so the JSON array is not truncated                                                                                               |
+| `temperature`                          | no       | **`0.0` (recommended)** — greedy decoding, the API equivalent of HF `do_sample=False`. Deterministic: identical audio always yields byte-identical output |
+| `repetition_penalty`                   | no       | **`1.05` (recommended)** — mild penalty that suppresses the model's known post-audio repetition loop; passes through the gateway to vLLM                    |
+| `do_sample`                            | no       | HF-style`do_sample: false` is accepted (and ignored) by vLLM; use `temperature: 0.0` instead — that is the real greedy switch                                   |
 
 The `input_audio.data` field is the base64-encoded WAV payload. Use the standard OpenAI content-type pattern for audio input.
 
@@ -115,12 +115,12 @@ B64=$(python3 -c "import base64;print(base64.b64encode(open('audio.wav','rb').re
 
 The response is an OpenAI `chat.completion`. The transcription is a JSON array of segments embedded as a string inside `message.content`, one object per detected speaker/utterance:
 
-| Segment key | Type | Meaning |
-|---|---|---|
-| `Start` | float | Start time in seconds |
-| `End` | float | End time in seconds |
-| `Speaker` | int | Diarized speaker index (0-based) |
-| `Content` | string | Transcribed text |
+| Segment key | Type   | Meaning                          |
+| ----------- | ------ | -------------------------------- |
+| `Start`   | float  | Start time in seconds            |
+| `End`     | float  | End time in seconds              |
+| `Speaker` | int    | Diarized speaker index (0-based) |
+| `Content` | string | Transcribed text                 |
 
 Example response:
 
@@ -167,11 +167,11 @@ The example above is from a live test: a 1.8-second WAV returned a single segmen
 
 ## Recommended sampling parameters
 
-| Parameter | Value | Why |
-|---|---|---|
-| `temperature` | `0.0` | Greedy decoding (`do_sample=False` equivalent). **Verified deterministic**: 3 repeat calls of the same audio produce byte-identical transcripts |
-| `repetition_penalty` | `1.05` | Suppresses the post-audio repetition loop the model exhibits when it fails to emit EOS after the last segment |
-| `max_tokens` | ~35 × audio-seconds + 500 | Rule of thumb; short 46 s clip needs ~1500, a 60 min file needs ~24000 |
+| Parameter              | Value                      | Why                                                                                                                                                     |
+| ---------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `temperature`        | `0.0`                    | Greedy decoding (`do_sample=False` equivalent). **Verified deterministic**: 3 repeat calls of the same audio produce byte-identical transcripts |
+| `repetition_penalty` | `1.05`                   | Suppresses the post-audio repetition loop the model exhibits when it fails to emit EOS after the last segment                                           |
+| `max_tokens`         | ~35 × audio-seconds + 500 | Rule of thumb; short 46 s clip needs ~1500, a 60 min file needs ~24000                                                                                  |
 
 ```json
 "temperature": 0.0,
@@ -185,19 +185,19 @@ The example above is from a live test: a 1.8-second WAV returned a single segmen
 
 Single request through the gateway (client-side wall time incl. TLS + gateway):
 
-| Audio | Processing | RTF |
-|---|---:|---:|
-| 45.7 s clip | 0.34–4.5 s | ~0.01–0.10 |
-| 19.3 min (`low-res-May_1_5x.wav`) | 74.1 s | **0.064** (~16× real-time) |
+| Audio                               |  Processing |                               RTF |
+| ----------------------------------- | ----------: | --------------------------------: |
+| 45.7 s clip                         | 0.34–4.5 s |                       ~0.01–0.10 |
+| 19.3 min (`low-res-May_1_5x.wav`) |      74.1 s | **0.064** (~16× real-time) |
 
 Concurrency (burst of parallel requests through the gateway):
 
-| Burst | Result | Aggregate throughput |
-|---|---|---:|
-| 4 simultaneous | 4/4 OK, all `finish=stop` | 35× real-time |
-| 8 simultaneous | 8/8 OK, per-request 0.9–1.6 s | **200× real-time** |
+| Burst                          | Result                                  |      Aggregate throughput |
+| ------------------------------ | --------------------------------------- | ------------------------: |
+| 4 simultaneous                 | 4/4 OK, all`finish=stop`              |            35× real-time |
+| 8 simultaneous                 | 8/8 OK, per-request 0.9–1.6 s          | **200× real-time** |
 | **16 × 19.3-min files** | **16/16 OK, all `finish=stop`** | **697× real-time** |
-| 8 + 8 mixed (May + Shamma) | 16/16 OK, 127 s wall | 138× real-time |
+| 8 + 8 mixed (May + Shamma)     | 16/16 OK, 127 s wall                    |           138× real-time |
 
 Notes:
 
@@ -228,8 +228,8 @@ The gateway maps the user-facing model name (`microsoft/VibeVoice-ASR`) to the i
 
 ## Quick reference
 
-| Capability | Method | Endpoint | Model |
-|---|---|---|---|
+| Capability               | Method   | Endpoint                 | Model                       |
+| ------------------------ | -------- | ------------------------ | --------------------------- |
 | ASR (audio in chat JSON) | `POST` | `/v1/chat/completions` | `microsoft/VibeVoice-ASR` |
 
 ### Production-ready request (copy-paste script)
