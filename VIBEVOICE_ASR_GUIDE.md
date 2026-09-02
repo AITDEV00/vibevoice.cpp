@@ -232,20 +232,64 @@ The gateway maps the user-facing model name (`microsoft/VibeVoice-ASR`) to the i
 |---|---|---|---|
 | ASR (audio in chat JSON) | `POST` | `/v1/chat/completions` | `microsoft/VibeVoice-ASR` |
 
-### Minimal ready-to-use request
+### Production-ready request (copy-paste script)
 
-A runnable version of this request is saved as **`transcribe.sh`** in this repo
-root (verified working 2026-09-02). It auto-sizes `max_tokens` from the audio
-duration, writes the payload to a temp file (large base64 payloads exceed the
-shell argv limit, so the body must be passed via `-d @file`), and prints the
-raw `chat.completion` JSON:
+Verified working 2026-09-02. Auto-sizes `max_tokens` from the audio duration
+(~35 tokens/audio-second + 500, capped at 24000) and writes the payload to a
+temp file — large base64 payloads exceed the shell argv limit, so the body
+must be passed via `-d @file`, not as an inline argument.
 
 ```bash
-./transcribe.sh audio.wav              # auto max_tokens
-./transcribe.sh long_audio.wav 24000   # explicit max_tokens
+#!/usr/bin/env bash
+# transcribe <audio-file> [max_tokens]
+set -euo pipefail
+FILE="${1:?usage: transcribe <audio-file> [max_tokens]}"
+MAX_TOKENS="${2:-}"
+LITELLM_URL="${LITELLM_URL:-https://litellm.adeoaiengine.ecouncil.ae/v1/chat/completions}"
+LITELLM_KEY="${LITELLM_KEY:-<your-api-key>}"
+
+DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$FILE")
+if [[ -z "${MAX_TOKENS}" ]]; then
+  MAX_TOKENS=$(python3 -c "print(min(24000, int(${DUR:-60}) * 35 + 500))")
+fi
+
+PAYLOAD=$(mktemp /tmp/vibevoice-payload.XXXXXX.json)
+trap 'rm -f "$PAYLOAD"' EXIT
+python3 - "$FILE" "$MAX_TOKENS" "$DUR" "$PAYLOAD" <<'PY'
+import base64, json, sys
+path, max_tokens, dur, out = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+b64 = base64.b64encode(open(path, "rb").read()).decode()
+payload = {
+    "model": "microsoft/VibeVoice-ASR",
+    "messages": [
+        {"role": "system",
+         "content": "You are a helpful assistant that transcribes audio input "
+                    "into text output in JSON format."},
+        {"role": "user",
+         "content": [
+             {"type": "text",
+              "text": f"This is a {float(dur):.1f} seconds audio, please "
+                      f"transcribe it with these keys: Start time, End time, "
+                      f"Speaker ID, Content"},
+             {"type": "input_audio",
+              "input_audio": {"data": b64, "format": "wav"}},
+         ]},
+    ],
+    "max_tokens": int(max_tokens),
+    "temperature": 0.0,
+    "repetition_penalty": 1.05,
+}
+with open(out, "w") as f:
+    json.dump(payload, f)
+PY
+
+curl -sk "$LITELLM_URL" \
+  -H "Authorization: Bearer $LITELLM_KEY" \
+  -H "Content-Type: application/json" \
+  -d @"$PAYLOAD"
 ```
 
-Or inline:
+Or inline (short clips only — argv limit):
 
 ```bash
 B64=$(python3 -c "import base64;print(base64.b64encode(open('audio.wav','rb').read()).decode())")
