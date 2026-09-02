@@ -1,0 +1,582 @@
+{
+ "file": "low-res-May_1_5x.wav",
+ "audio_duration_s": 1157.451,
+ "processing_time_s": 128.696,
+ "rtf": 0.1112,
+ "finish_reason": "length",
+ "raw_segments_total": 150,
+ "segments_in_duration": 95,
+ "last_end_s": 1188.56,
+ "transcript": [
+  {
+   "Start": 0,
+   "End": 1.72,
+   "Speaker": 0,
+   "Content": "Okay."
+  },
+  {
+   "Start": 1.72,
+   "End": 16.34,
+   "Speaker": 1,
+   "Content": "So, thank you so much, uh May, for uh joining us today and for your um interest in this opportunity with the Amuda Executive Office. Uh my name is Maria and I am from Talent Acquisition team. I'd like uh to introduce to you Ms. Amna and Ms. Mariam, part of our strategic projects and future foresight uh strategic team."
+  },
+  {
+   "Start": 16.34,
+   "End": 27.5,
+   "Speaker": 1,
+   "Content": "Now before we begin, I'd like to um um again that the interview will be recorded as part of the our assessment process. And then to start, Amna and Mariam will give you a brief of the department, the mandate, and the role that you are applying for."
+  },
+  {
+   "Start": 27.5,
+   "End": 40.3,
+   "Speaker": 1,
+   "Content": "After that, we would appreciate if you could share a short introduction about yourself, including your current responsibilities, areas of expertise, and educational background. Once that is completed, we will then proceed with the interview questions. And towards the end of the discussion, you'll have a time or opportunity to ask questions if you have any."
+  },
+  {
+   "Start": 40.3,
+   "End": 41.4,
+   "Speaker": 0,
+   "Content": "Okay."
+  },
+  {
+   "Start": 41.86,
+   "End": 44.38,
+   "Speaker": 2,
+   "Content": "Thank you, Maria. Uh, hi May."
+  },
+  {
+   "Start": 44.42,
+   "End": 45.69,
+   "Speaker": 0,
+   "Content": "Hi, Maya."
+  },
+  {
+   "Start": 45.69,
+   "End": 46.41,
+   "Speaker": 2,
+   "Content": "slacking"
+  },
+  {
+   "Start": 46.41,
+   "End": 48.88,
+   "Speaker": 0,
+   "Content": "a little bit from my end or in general"
+  },
+  {
+   "Start": 48.88,
+   "End": 49.69,
+   "Speaker": 2,
+   "Content": "No, it's okay."
+  },
+  {
+   "Start": 49.69,
+   "End": 50.36,
+   "Speaker": 0,
+   "Content": "Okay."
+  },
+  {
+   "Start": 50.36,
+   "End": 82.08,
+   "Speaker": 2,
+   "Content": "Okay, great. Uh, so just to give you a brief about ourselves, Amna and I sit in the Strategic Projects and Future Foresight team under the Strategy and Future sector. Um, we work on four different things. Uh, the main bulk of our work is focused on proactive projects, and typically those are challenges or topics that come to us from either leadership or have been identified as a priority for the government. And we take on this challenge and we innovate solutions, and that could be in the form of a strategy, it could be in the form of an intervention, could be in the form of a report or a memo. It really depends on the type of ask we receive. And in terms of topics, they are very diverse and cover a lot of different things."
+  },
+  {
+   "Start": 82.08,
+   "End": 120.0,
+   "Speaker": 2,
+   "Content": "So it could one day be something on technology, the other day it could be something on the environment, and the next it could be something on families and culture or identity or whatnot. So the topics vary, we're not specified in a specific sector. That's the main bulk of our work. The second thing we do is we kind of manage strategic discussions with senior leadership, and that takes the form of something we call an EC retreat, which is like an executive committee retreat or Abu Dhabi retreat. It's not typically what you would think a retreat would be. It's more of like an accelerator where people come in, leadership comes in on a specific challenge that has been predefined, and we brainstorm an action plan for that challenge. And they would come in either for a day, three days, or a week. It depends on the depth and breadth of the topic that is being discussed."
+  },
+  {
+   "Start": 120.0,
+   "End": 130.87,
+   "Speaker": 2,
+   "Content": "uh, and the reason why we do this is that sometimes there are topics that are very cross-sectoral and they require leadership from different entities to be sitting in one room so that we can align and create, you know, a way forward for that uh certain topic or concept."
+  },
+  {
+   "Start": 130.87,
+   "End": 146.45,
+   "Speaker": 2,
+   "Content": "So that's the second thing we do. The third thing we do is on capability development, where we try to make sure that all the government entities are equipped with the latest skill sets, the knowledge that they need, the type of tools that we can provide them. So previously, Amna had worked on an amazing guide on behavioral insights, on a public policy framework."
+  },
+  {
+   "Start": 146.45,
+   "End": 160.81,
+   "Speaker": 2,
+   "Content": "so these are certain guidebooks that we do with uh to to provide to entities uh that can serve as, you know, a tool for them to improve their policy formation, to integrate BI into uh their projects, etcetera. We also run uh as part of that effort, we run something called the community of practice."
+  },
+  {
+   "Start": 160.81,
+   "End": 169.68,
+   "Speaker": 2,
+   "Content": "which is basically either on strategy or again behavioral insights. These are kind of like mini events and sessions, uh so knowledge sharing sessions, expert sessions where entities would come in and share their best practices on a certain topic."
+  },
+  {
+   "Start": 169.68,
+   "End": 189.44,
+   "Speaker": 2,
+   "Content": "it could be on data one day, it could be on narrative and storytelling the other. So it's just to bring everyone together and to kind of share that knowledge that an entity might dwell in. The fourth thing we do is, uh, we look at strategic monitoring and reporting outputs. So that could be looking at global indices and creating a report about where Abu Dhabi ranks, uh, relevant to those indices and why it's lagging versus how we can improve its its rank."
+  },
+  {
+   "Start": 189.44,
+   "End": 202.74,
+   "Speaker": 2,
+   "Content": "That's basically what we do in a nutshell. Um, if you can give us a brief about yourself, that would be great. Perfect. Thank you so much for the introduction. So, um, I'm a public policy and government affairs professional. Um, I have like over five years of experience. I work on um regulatory"
+  },
+  {
+   "Start": 202.74,
+   "End": 230.58,
+   "Speaker": 2,
+   "Content": "everything related to regulatory frameworks, public policy, government affairs, um political and diplomatic consulting as well. Um my experience includes um putting strategies for different for different projects for corporate. It's like I worked B2G, G2G as well. So um government government engagement strategies, uh policy advocacy, um political consulting, diplomatic consulting, stakeholder mapping and stakeholder engagement. Um I worked in both in-house roles and agency roles. So I worked in consulting and in-house as well."
+  },
+  {
+   "Start": 230.58,
+   "End": 231.56,
+   "Speaker": 2,
+   "Content": "Um"
+  },
+  {
+   "Start": 231.56,
+   "End": 270.31,
+   "Speaker": 2,
+   "Content": "Okay, so thank you so much, uh May, for uh joining us today and for your um interest in this opportunity with the Amna Executive Office. Uh my name is Maria and I am from Talent Acquisition team. I'd like uh to introduce to you Ms. Amna and Ms. Mariam, part of our strategic projects and future foresight uh strategic team. Now before we begin, I'd like to um um again that the interview will be recorded as part of the our uh assessment process. And then to start, Amna and Mariam will give you a brief of the department, the mandate, and the role that you are applying for. After that, we would appreciate if you could uh share a short introduction about yourself, including your current responsibilities, areas of expertise, and educational background. Once that is completed, we will then proceed with the interview questions and towards the end of the discussion, you'll have a time or opportunity to ask questions if you have any."
+  },
+  {
+   "Start": 271.35,
+   "End": 274.17,
+   "Speaker": 2,
+   "Content": "Thank you, Maria. Uh, Jaime."
+  },
+  {
+   "Start": 274.21,
+   "End": 275.35,
+   "Speaker": 0,
+   "Content": "Hi, Maya."
+  },
+  {
+   "Start": 275.35,
+   "End": 276.18,
+   "Speaker": 2,
+   "Content": "It's lagging."
+  },
+  {
+   "Start": 276.18,
+   "End": 278.64,
+   "Speaker": 0,
+   "Content": "a little bit from my end or in general"
+  },
+  {
+   "Start": 278.64,
+   "End": 279.46,
+   "Speaker": 2,
+   "Content": "No, it's okay."
+  },
+  {
+   "Start": 279.46,
+   "End": 280.14,
+   "Speaker": 0,
+   "Content": "Okay."
+  },
+  {
+   "Start": 280.14,
+   "End": 315.74,
+   "Speaker": 2,
+   "Content": "Okay, great. Uh, so just to give you a brief about ourselves, Amna and I sit in the strategic projects and future foresight team under the strategy and future sector. Um, we work on four different things. Uh, the main bulk of our work is focused on proactive projects, and typically those are challenges or topics that come to us from either leadership or have been identified as a priority for the government. And we take on this challenge and we innovate solutions, and that could be in the form of a strategy, it could be in the form of an intervention, could be in the form of a report or a memo. It really depends on the type of ask we receive. And in terms of topics, they are very diverse and cover a lot of different things. So it could one day be uh something on technology, the other day it could be something on the environment."
+  },
+  {
+   "Start": 315.74,
+   "End": 349.72,
+   "Speaker": 2,
+   "Content": "and the next it could be something on uh families and uh culture or identity or whatnot. So the topics vary, we're not specified in a specific sector. Um that's the main bulk of our work. The second thing we do is we uh kind of manage uh strategic discussions with uh senior leadership. And that takes the form of something we call an EC retreat, which is like an executive committee retreat or Abu Dhabi retreat. It's not typically what you would think a retreat would be. It's more of like an accelerator where people come in, leadership comes in on a specific challenge that has been predefined, and we brainstorm an action plan for that challenge. And they would come in either for a day, three days, or a week. Uh it depends on the depth and breadth of the topic that is being discussed."
+  },
+  {
+   "Start": 349.72,
+   "End": 387.24,
+   "Speaker": 2,
+   "Content": "uh, and the reason why we do this is that sometimes there are topics that are very cross-sectoral and they require leadership from different entities to be sitting in one room so that we can align and create, you know, a way forward for that uh certain topic or concept. So that's the second thing we do. The third thing we do is on capability development, uh where we try to make sure that all the government entities are equipped with the latest skill sets, the knowledge that they need, the type of tools that we can provide them. So previously, uh Amna had worked on an amazing guide on behavioral insights, on a public policy framework. So these are certain guidebooks that we do with uh to to provide to entities uh that can serve as, you know, a tool for them to improve their policy formation, to integrate BI into uh their projects, etcetera."
+  },
+  {
+   "Start": 387.24,
+   "End": 425.94,
+   "Speaker": 2,
+   "Content": "We also run, as part of that effort, we run something called the Community of Practice, which is basically either on strategy or again behavioral insights. These are kind of like mini events and sessions, so knowledge sharing sessions, expert sessions where entities would come in and share their best practices on a certain topic. It could be on data one day, it could be on narrative and storytelling the other. So it's just to bring everyone together and to kind of share that knowledge that an entity might dwell in. The fourth thing we do is we look at strategic monitoring and reporting outputs. So that could be looking at global indices and creating a report about where Abu Dhabi ranks relevant to those indices and why it's lagging versus how we can improve its its rank. That's basically what we do in a nutshell. Um if you can give us a brief about yourself, that would be great."
+  },
+  {
+   "Start": 425.94,
+   "End": 426.7,
+   "Speaker": 0,
+   "Content": "Perfect"
+  },
+  {
+   "Start": 426.7,
+   "End": 464.99,
+   "Speaker": 0,
+   "Content": "Thank you so much for the introduction. So, um, I'm a public policy and government affairs professional. Um, I have like over five years of experience. I work on um regulatory um everything related to regulatory frameworks, public policy, government affairs, um political and uh diplomatic consulting as well. Um, my experience includes um putting strategies for different uh for different projects for corporate, it's like I worked B2G, uh G2G as well. So, um government government engagement strategies, uh policy advocacy, um political consulting, diplomatic consulting, stakeholder mapping and stakeholder engagement. Um, I worked in uh both in-house roles and agency roles. So I worked in consulting and in-house as well. Um, also I studied international relations."
+  },
+  {
+   "Start": 464.99,
+   "End": 473.91,
+   "Speaker": 0,
+   "Content": "I have a bachelor of international relations and also a certificate of Middle Eastern studies. Um, that's in a that's in a nutshell. If you want me to go deeper into my experience, different experiences, I would love to as well."
+  },
+  {
+   "Start": 473.91,
+   "End": 483.46,
+   "Speaker": 2,
+   "Content": "Thank you so much. I wanted to ask about the different strategies that you've developed. Can you walk me through how you would define a certain strategy and what context, based on the context that you were working in?"
+  },
+  {
+   "Start": 483.46,
+   "End": 484.18,
+   "Speaker": 0,
+   "Content": "Okay"
+  },
+  {
+   "Start": 484.18,
+   "End": 522.25,
+   "Speaker": 0,
+   "Content": "So, for example, I worked across different sectors, um whether it's in the government engagement or public policy. So how I would approach putting a strategy depends on the objective and on the sector, of course, and on the objective. Uh I would start by uh first defining what's the objective, um mapping stakeholders, assessing internal and external what is the problem and what what's what are the the challenges internally and externally, who are the the main stakeholders. Um also I would have KPIs. And I would build my strategy build on the on the main objective that I want. So let's say I have a government engagement strategy for um a government engagement strategy for like having an event on uh having a policy issue on AI or having a policy issue on cybersecurity."
+  },
+  {
+   "Start": 522.25,
+   "End": 534.71,
+   "Speaker": 0,
+   "Content": "So I would start for a client, for example, I'm having a government engagement for one of my corporate clients. I would start by defining what what is the the objective, who are the stakeholders from the government, uh what are the challenges and what are the KPIs. And I would put my strategy accordingly."
+  },
+  {
+   "Start": 534.71,
+   "End": 550.51,
+   "Speaker": 2,
+   "Content": "All right, and you seem to have kind of an understanding of, you know, the developments that the UAE or the GCC is taking across public policy, across its strategic direction. What would you say, in your opinion, should be the focus or the strategic direction for Abu Dhabi? If you were to list two to three for Abu Dhabi?"
+  },
+  {
+   "Start": 550.51,
+   "End": 553.24,
+   "Speaker": 0,
+   "Content": "or um in the long like shorter, medium term or long term"
+  },
+  {
+   "Start": 553.24,
+   "End": 554.64,
+   "Speaker": 2,
+   "Content": "for the next five years, let's say."
+  },
+  {
+   "Start": 554.64,
+   "End": 592.02,
+   "Speaker": 0,
+   "Content": "Um, of course, like economic, um, if I'm going to put like, let's let me put it in, you mean Abu Dhabi independently or UAE in the in the Abu Dhabi? Abu Dhabi in specific. Of course, economically, uh moving away from hydrocarbons, investing in AI, technology in general, uh geopolitically, um having um a plan for the geopolitical developments that are happening in the region, uh whether on a regional level or a global level. Um third, um third dimension would be like actually I would approach it in different ways according to the context, but mainly as the economic, the economic context which is uh moving away from hydrocarbon, having the the AI and cybersecurity at the forefront, governance is also an important, an important aspect."
+  },
+  {
+   "Start": 592.02,
+   "End": 608.44,
+   "Speaker": 0,
+   "Content": "geopolitically, I would put like three three different um three different fronts, the the GCC, um regional and the global context. Um that's pretty much the most important the most important dimensions I can think of right now while you're asking me. Like without thinking so much."
+  },
+  {
+   "Start": 608.44,
+   "End": 609.17,
+   "Speaker": 2,
+   "Content": "No worries."
+  },
+  {
+   "Start": 609.17,
+   "End": 636.49,
+   "Speaker": 2,
+   "Content": "uh let's say for example, you were asked to create a scenario planning exercise for the context that you've mentioned. Let's say because of what's happening in the region, you were to come in and create a scenario planning exercise to assess all the risks that could potentially occur and to create a mitigation plan. I will ask you two questions. How would you number one, prioritize the risks? So how would you assess which comes first and what's more of a priority? Number two, how would you come up with mitigation plans? What tools would you use? What would you rely on to come up with a game plan for these certain risks with limited resources and information?"
+  },
+  {
+   "Start": 636.49,
+   "End": 637.44,
+   "Speaker": 0,
+   "Content": "Okay."
+  },
+  {
+   "Start": 637.44,
+   "End": 675.13,
+   "Speaker": 0,
+   "Content": "So first of all, I would prioritize the current, um, geopolitical situation to assess like where are we in this, like what's happening, how can we recover if we're doing it right now and things. Uh, what are the risks, what are the losses that that we have, like I would assess the situation. And I would start prioritizing, um, geopolitically and then economically. Um, how I would use like how I would assess that, I would use my research, different research methods. Um, I would use like internal, like, um, the internal reports of what what occurred inside inside Abu Dhabi and how how where where do we sit in the broader GCC or the broader region. Not just, um, not just Abu Dhabi in the UAE and then on the GCC level and the regional level."
+  },
+  {
+   "Start": 675.13,
+   "End": 681.51,
+   "Speaker": 0,
+   "Content": "And um I would just start from there and put an objective and the challenges and risks and the plan, the mitigation plan based on that."
+  },
+  {
+   "Start": 681.51,
+   "End": 706.22,
+   "Speaker": 2,
+   "Content": "All right, and let's say you had to come up with criteria to justify your choice of whether it's a risk or a priority that you're selecting or a strategic direction. Let's say you came up and said, okay, technology is important, economic diversification is important, managing geopolitical dynamics is important, I don't know, social aspects like family formation is important. You came up and you said those four things. And leadership came to you and said, okay, how would you justify those priorities and that ranking? What type of criteria did you use?"
+  },
+  {
+   "Start": 706.22,
+   "End": 706.99,
+   "Speaker": 0,
+   "Content": "Okay"
+  },
+  {
+   "Start": 706.99,
+   "End": 727.05,
+   "Speaker": 0,
+   "Content": "So there's something very important that I need to mention. Any... anything that I would come up with would align with the pre-existing vision of Abu Dhabi and the UAE for example 2031, but I would adjust it given the current development... current developments. Even if they are there, but I would just highlight that. So the priority would be aligning with the with the country's vision and the pre-existing priorities. However, I would adjust it according... adjust it according to the current developments in the region."
+  },
+  {
+   "Start": 727.05,
+   "End": 731.02,
+   "Speaker": 2,
+   "Content": "Is there anything else that you would look at in terms of criteria?"
+  },
+  {
+   "Start": 731.14,
+   "End": 745.61,
+   "Speaker": 0,
+   "Content": "like the priorities and how how what's the what's what's happening at play right now. How are we get how we what do we need to get out of where we are right now or to if there's a certain challenge or certain thing that we are facing, or there's something on the global stage that we are not aware of or there's an opportunity that we can take to mitigate whatever is happening right now."
+  },
+  {
+   "Start": 745.61,
+   "End": 751.08,
+   "Speaker": 2,
+   "Content": "So you would look at alignment, you would look at impact of that certain priority. Is there anything else?"
+  },
+  {
+   "Start": 751.08,
+   "End": 763.85,
+   "Speaker": 0,
+   "Content": "um impact alignment, um also where we are heading like Abu Dhabi is is a place where the arrow shoots from. So whatever strategy I would put or whatever approach I would have, it would be based on that."
+  },
+  {
+   "Start": 763.85,
+   "End": 764.47,
+   "Speaker": 2,
+   "Content": "Great."
+  },
+  {
+   "Start": 764.47,
+   "End": 773.92,
+   "Speaker": 0,
+   "Content": "how how to maintain or to to put a a blob if we're not at this for example sector or we're having at this problem how I can put it at this at the place where it's actually um aspires to be or"
+  },
+  {
+   "Start": 773.92,
+   "End": 792.07,
+   "Speaker": 2,
+   "Content": "Great. You mentioned that, so let's say you developed a strategy on one of the topics that you've mentioned. I know you mentioned in the beginning that you are a policy and governance or government affairs professional and that you've worked on, I've seen in your CV you've worked on briefing memos, executive briefings, et cetera. What in your opinion makes a good briefing versus a bad one?"
+  },
+  {
+   "Start": 792.07,
+   "End": 792.87,
+   "Speaker": 0,
+   "Content": "Okay"
+  },
+  {
+   "Start": 792.87,
+   "End": 811.61,
+   "Speaker": 0,
+   "Content": "A good one has to be comprehensive. It has to have um different dimensions, not only one dimension, and it has to have recommendations based on assessing different different different aspects of aspects of the situation, not only one. A bad one would be um one-sided or it has a very fixed opinion. There should be flexibility and more than one recommendation based on the given, of course."
+  },
+  {
+   "Start": 811.61,
+   "End": 818.38,
+   "Speaker": 2,
+   "Content": "How long would the executive briefing be or typically when you write those policy notes or executive briefings, how long does it is it typically done?"
+  },
+  {
+   "Start": 818.38,
+   "End": 819.96,
+   "Speaker": 0,
+   "Content": "How in high you mean?"
+  },
+  {
+   "Start": 819.96,
+   "End": 821.44,
+   "Speaker": 2,
+   "Content": "number of no number of features, sorry."
+  },
+  {
+   "Start": 821.44,
+   "End": 835.64,
+   "Speaker": 0,
+   "Content": "number of pages. It really depends. Sometimes it's like 10 pages, 20 pages, sometimes sometimes it's two pages. It depends on really the topic and the the thing I'm asked for, if it's a long research or if it's like depending on who I'm presenting it also for, like leadership, okay, who is from the leadership, what they need it for, is it urgent, is it something, it really depends."
+  },
+  {
+   "Start": 835.64,
+   "End": 836.75,
+   "Speaker": 0,
+   "Content": "It's not a fixed thing."
+  },
+  {
+   "Start": 836.75,
+   "End": 851.48,
+   "Speaker": 2,
+   "Content": "Yeah, and let's say it is for leadership, senior leadership, and you were to uh propose uh a new intervention on, I don't know, investing heavily in R&D for AI development. Hypothetically. What are the certain like buckets that you would put in a memo for leadership?"
+  },
+  {
+   "Start": 851.54,
+   "End": 854.12,
+   "Speaker": 0,
+   "Content": "I'm sorry, I'm for investing in?"
+  },
+  {
+   "Start": 854.12,
+   "End": 864.76,
+   "Speaker": 2,
+   "Content": "the topic doesn't matter. So for example, investing in AI, right? But let's say you're just creating a memo for leadership. Okay. Two-page memo. What would you include in that memo? So I previously mentioned the ask, uh what else would you include in the memo?"
+  },
+  {
+   "Start": 864.76,
+   "End": 881.16,
+   "Speaker": 0,
+   "Content": "opportunities, challenges, um risks and um what how where like what is happening on the global stage, what are our neighbors doing, um how we can like like different but mainly the opportunities, risks and um challenges and potential outcomes of this invest of those investments or whatever the topic is."
+  },
+  {
+   "Start": 881.16,
+   "End": 892.72,
+   "Speaker": 2,
+   "Content": "Great. I'll ask you two more questions and then I'll pass on to Amna if she has any questions. Um, I've noticed that you've worked with different stakeholders both in the country and in the GCC. What's the hardest stakeholder situation you faced and how did you handle it?"
+  },
+  {
+   "Start": 892.72,
+   "End": 893.53,
+   "Speaker": 0,
+   "Content": "Okay"
+  },
+  {
+   "Start": 893.53,
+   "End": 927.58,
+   "Speaker": 0,
+   "Content": "The hardest stakeholder situation I faced was trying to um influence a policy. And how I managed to do that, it was um it was through first of all different ways of negotiating. Um I had I I made a round table first of all. I mapped the the not just the stakeholder that I need, but I also connected who else would be relevant to that. I made a round table. I presented it was like more of policy advocacy. I presented the situation with the multiple um stakeholders, not for the not for policy influencing as much as it was for um the challenges of implementing such a policy. And gradually, I was actually able to change that policy and it was something major in Dubai. It was something related to cybersecurity."
+  },
+  {
+   "Start": 927.58,
+   "End": 935.0,
+   "Speaker": 0,
+   "Content": "and um so yeah, stakeholder mapping and bringing together multiple stakeholders to discuss the how how this policy is impacting different the different stakeholders."
+  },
+  {
+   "Start": 935.0,
+   "End": 944.62,
+   "Speaker": 2,
+   "Content": "three Thank you so much. I'll I'll ask you one last maybe personal question and then I'll pass on to Amna if she has any questions. Um, what interests you? What do you do for fun? What's your day-to-day like?"
+  },
+  {
+   "Start": 944.62,
+   "End": 947.09,
+   "Speaker": 0,
+   "Content": "Okay So, I love books. I read a lot of books."
+  },
+  {
+   "Start": 947.09,
+   "End": 972.58,
+   "Speaker": 0,
+   "Content": "So I always have a book next to me. So, um, I read books, I read the like I do my own analysis of the geopolitical events happening. I can do like predictions of what's going to, I like to challenge myself by predicting what's going to happen next. Uh, will things escalate, will things not escalate? Uh, I also like to monitor, um, media monitoring, do media monitoring for the Middle East, what's developing, what's like what's happening in um in Egypt, what's happening in Oman, what's Qatar doing, how is this country navigating whatever is happening? I'm very curious about like everything that's happening in the Middle East and in the global stage, on the global stage."
+  },
+  {
+   "Start": 972.58,
+   "End": 973.79,
+   "Speaker": 2,
+   "Content": "Do you publish that anywhere?"
+  },
+  {
+   "Start": 973.79,
+   "End": 985.35,
+   "Speaker": 0,
+   "Content": "I know I don't, unfortunately. But I but I have some posts on on LinkedIn, but they're not really like they're not I I like to keep my opinion to myself for now, unless until I have an opportunity to share it with the with the relevant stakeholders."
+  },
+  {
+   "Start": 985.35,
+   "End": 988.2,
+   "Speaker": 2,
+   "Content": "Great. Thank you so much. Ahmed, do you have any questions to add?"
+  },
+  {
+   "Start": 988.2,
+   "End": 1021.12,
+   "Speaker": 3,
+   "Content": "Yeah, I actually wanted to ask more related to the the work side, not the personal side. Um, what do you think is a common mistake or a mistake um that you think is a red flag when it comes to building strategies? So let's say you're leading a team and um, uh, the ask is to develop a strategic intervention for um, uh, integrating AI in schools. Uh, what, and you ask your team to develop it and you give them two weeks to develop this. What do you think would stand out to you as a mistake or something that's going the wrong way or something that is, um, you know, not you can't show this to leadership?"
+  },
+  {
+   "Start": 1021.12,
+   "End": 1022.06,
+   "Speaker": 0,
+   "Content": "Of course."
+  },
+  {
+   "Start": 1022.06,
+   "End": 1023.15,
+   "Speaker": 3,
+   "Content": "when building that strategy."
+  },
+  {
+   "Start": 1023.15,
+   "End": 1054.46,
+   "Speaker": 0,
+   "Content": "Of course, ignoring um challenges, like I don't see the the like long-term and short-term, like they're not including short-term, um medium-term and long-term impact of that of of the implementation or the challenges. They don't see there's no um future foresight or any like what are the risks or challenges. This is like a red flag for me. Like it's not inclusive what's going to like there's there should be a very um strategic foresight part where there's like potential impact that's beyond the beyond the opposite like beyond what what's how it's gonna positively impact the whatever project if we're talking about AI. Do you understand what get what I mean?"
+  },
+  {
+   "Start": 1054.46,
+   "End": 1063.73,
+   "Speaker": 3,
+   "Content": "It's very clear. And how would you say, um, since we're on the topic of AI in schools, would you say is a way to measure the impact of that strategy? Let's say you developed it and everything, how would you measure the impact of the strategy?"
+  },
+  {
+   "Start": 1063.73,
+   "End": 1066.12,
+   "Speaker": 0,
+   "Content": "uh through having KPIs of course."
+  },
+  {
+   "Start": 1066.12,
+   "End": 1068.73,
+   "Speaker": 3,
+   "Content": "What kind of KPIs? I come up with two KPIs."
+  },
+  {
+   "Start": 1068.73,
+   "End": 1095.52,
+   "Speaker": 0,
+   "Content": "Okay, how how will it um how does it improve the student's performance if we're talking implementing it in schools? How how like what is the measuring before AI before implementing it and after implementing it? How will it how what kind of impact does it have? Um also how does it um save time or resources or um positively impact the the the school system the school system or the educational system? And what value educational and um mental or logical value does it add?"
+  },
+  {
+   "Start": 1095.79,
+   "End": 1100.35,
+   "Speaker": 0,
+   "Content": "developed the development like how does it develop the the educational system?"
+  },
+  {
+   "Start": 1100.55,
+   "End": 1110.27,
+   "Speaker": 3,
+   "Content": "Awesome. And what motivates you, May? Like what's something that really excites you other than the like for you to join a place like Audio, what would make you or motivate you to join Audio than your current position?"
+  },
+  {
+   "Start": 1110.27,
+   "End": 1111.08,
+   "Speaker": 0,
+   "Content": "Okay"
+  },
+  {
+   "Start": 1111.08,
+   "End": 1137.62,
+   "Speaker": 0,
+   "Content": "if we're talking like, uh, if we're talking like really honestly, I'm very passionate about government work and I love Abu Dhabi. Abu Dhabi is a place where the Irish shoots from and I'm a very ambitious person, so it's like I align perfectly with Abu Dhabi. And my best times were when I was working in Abu Dhabi in, um, MacroScope Strategies, now Evolve. I was interacting with, uh, with the government a lot on different projects, on, um, political, uh, projects. So Abu Dhabi is alone, Abu Dhabi alone is a motivation, a major motivation for me. And working for the government, watching things develop is something else for me."
+  },
+  {
+   "Start": 1137.62,
+   "End": 1144.02,
+   "Speaker": 3,
+   "Content": "I love that. Awesome, thank you so much, May. Um, there's no further questions from my side. If you have any questions for us, uh now's the time to ask."
+  },
+  {
+   "Start": 1144.02,
+   "End": 1150.04,
+   "Speaker": 0,
+   "Content": "Um, I would love to know what how does the perfect candidate for this role look like? This is my first question for both of you."
+  },
+  {
+   "Start": 1150.08,
+   "End": 1188.56,
+   "Speaker": 3,
+   "Content": "Uh, I'll answer first and then maybe you can answer, but the perfect candidate I think, I wouldn't say there's a perfect candidate, but someone who's very suitable for the role would be someone who has very high critical thinking skills, um and can look at things from different lenses, different perspectives and bring them together. It's a very rare, uh, you know, skill to find and um that's someone that we really want to, um, someone who has that to join the team. The second one is basically being very adaptable and agile. So since we deal with so many topics like literally everything on earth, we need somebody who's a quick learner and isn't just stuck within their, you know, scope or field, you know, and they get excited, um and they want to learn about let's say robotics versus fashion versus uh AI in schools, you know what I mean? Someone who's very agile. I think those are the two main skills that I would be looking for, Maria."
+  }
+ ]
+}
