@@ -14,6 +14,8 @@ bench.sh
 *.bin
 models/
 out/
+# Large video sources (>100 MB) — too big for GitHub; use Git LFS if needed
+video/*.mp4
 tests/fixtures/*.wav
 tests/fixtures/*.gguf
 tests/fixtures/*.npy
